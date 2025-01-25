@@ -43,7 +43,7 @@ Quadrotor::Quadrotor(void)    //模型的初始化
   state_.omega     = Eigen::Vector3d::Zero();
   state_.motor_rpm = Eigen::Array4d::Zero();
 
-  external_force_.setZero();
+  external_force_.setZero();  
 
   updateInternalState();
 
@@ -197,13 +197,17 @@ void Quadrotor::operator()(const Quadrotor::InternalState& x,
   }
 
   x_dot = cur_state.v;
-  //请在这里补充完四旋翼飞机的动力学模型，提示：v_dot应该与重力，总推力，外力和空气阻力相关
-  // v_dot = //?????
-
+  v_dot = (thrust * R.col(2) - mass_ * Eigen::Vector3d(0, 0, g_) + external_force_) / mass_ - resistance * vnorm;
+//请在这里补充完四旋翼飞机的动力学模型，提示：v_dot应该与重力，总推力，外力和空气阻力相关
+  //v_dot = Eigen::Vector3d(0,0,thrust/mass_) - Eigen::Vector3d(0,0,g_) - (resistance / mass_)*vnorm + external_force_/mass_;
+  //v_dot = (thrust * R.col(2) - mass_ * Eigen::Vector3d(0, 0, g_) + external_force_) / mass_ - (resistance / mass_) * vnorm;
 
   acc_ = v_dot;
 
   R_dot = R * omega_vee;
+  // 之前是空的或注释掉的
+  omega_dot = J_.inverse() * (moments - cur_state.omega.cross(J_ * cur_state.omega) + external_moment_);
+  //omega_dot = J_.inverse() * (moments - cur_state.omega.cross(J_ * cur_state.omega) + external_moment_);
   //请在这里补充完四旋翼飞机的动力学模型，角速度导数的计算涉及到惯性矩阵J_的逆、力矩、科里奥利力（通过角速度与惯性矩阵和角速度的叉积来计算）和外部力矩等因素。
   // omega_dot = //??????
 
